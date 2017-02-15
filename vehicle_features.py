@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-import matplotlib.image as mpimg
+# import matplotlib.image as mpimg
 from skimage.feature import hog
 
 
@@ -65,7 +65,9 @@ def extract_features(imgs, color_space='RGB',
     for file in imgs:
         file_features = []
 
-        image = mpimg.imread(file)
+        # image = mpimg.imread(file)
+        image = cv2.imread(file)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         if color_space != 'RGB':
             if color_space == 'HSV':

@@ -100,6 +100,51 @@ def search_windows(img, windows, clf, scaler, color_space='RGB',
     return on_windows
 
 
+def generate_search_windows(img):
+    # Uncomment the following line if you extracted training
+    # data from .png images (scaled 0 to 1 by mpimg) and the
+    # image you are searching is a .jpg (scaled 0 to 255)
+    # image = image.astype(np.float32)/255
+
+    windows = []
+    # h = img.shape[0]
+
+    y_start_stop = [500, None]
+    xy_overlap = (0.8, 0.8)
+
+    for size in [200]:
+        wins = slide_window(img,
+                            x_start_stop=[None, None],
+                            y_start_stop=y_start_stop,
+                            xy_window=(size, size),
+                            xy_overlap=xy_overlap)
+        windows += wins
+
+    y_start_stop = [400, 560]
+    xy_overlap = (0.75, 0.75)
+
+    for size in [80, 100, 120]:
+        wins = slide_window(img,
+                            x_start_stop=[None, None],
+                            y_start_stop=y_start_stop,
+                            xy_window=(size, size),
+                            xy_overlap=xy_overlap)
+        windows += wins
+
+    y_start_stop = [380, 440]
+    xy_overlap = (0.75, 0.75)
+
+    for size in [40, 60]:
+        wins = slide_window(img,
+                            x_start_stop=[400, 1000],
+                            y_start_stop=y_start_stop,
+                            xy_window=(size, size),
+                            xy_overlap=xy_overlap)
+        windows += wins
+
+    return windows
+
+
 def add_heat(heatmap, bbox_list):
     # Iterate through list of bboxes
     for box in bbox_list:
@@ -127,7 +172,7 @@ def draw_boxes(img, bboxes, color=(0, 0, 255), thickness=6):
     return imcopy
 
 
-def draw_labeled_bboxes(img, labels):
+def draw_labeled_bboxes(img, labels, color=(0, 0, 255)):
 
     for car_number in range(1, labels[1]+1):
         # Find pixels with each car_number label value
@@ -142,6 +187,6 @@ def draw_labeled_bboxes(img, labels):
                 (np.max(nonzerox), np.max(nonzeroy)))
 
         # Draw the box on the image
-        cv2.rectangle(img, bbox[0], bbox[1], (0, 0, 255), 6)
+        cv2.rectangle(img, bbox[0], bbox[1], color, 6)
 
     return img

@@ -35,24 +35,34 @@ def build_model(color_space='RGB', orientations=9,
 
         return (svc, X_scaler)
 
+    # Large Dataset
+    # =============
     # Load cars and not cars datasets
-    images = glob.glob('data/*_smallset/**/*.jpeg')
-    print('Loading {} images...'.format(len(images)))
+    cars = glob.glob('data/vehicles_largeset/**/*.png')
+    notcars = glob.glob('data/non-vehicles_largeset/**/*.png')
+    print('Loading {} car images...'.format(len(cars)))
+    print('Loading {} not car images...'.format(len(notcars)))
 
-    cars = []
-    notcars = []
+    # Small Dataset
+    # =============
+    # # Load cars and not cars datasets
+    # images = glob.glob('data/*_smallset/**/*.jpeg')
+    # print('Loading {} images...'.format(len(images)))
 
-    for image in images:
-        if 'image' in image or 'extra' in image:
-            notcars.append(image)
-        else:
-            cars.append(image)
+    # cars = []
+    # notcars = []
 
-    # Reduce the sample size because HOG features are slow to compute
-    # The quiz evaluator times out after 13s of CPU time
-    sample_size = 2000
-    cars = cars[0:sample_size]
-    notcars = notcars[0:sample_size]
+    # for image in images:
+    #     if 'image' in image or 'extra' in image:
+    #         notcars.append(image)
+    #     else:
+    #         cars.append(image)
+
+    # # Reduce the sample size because HOG features are slow to compute
+    # # The quiz evaluator times out after 13s of CPU time
+    # sample_size = 2000
+    # cars = cars[0:sample_size]
+    # notcars = notcars[0:sample_size]
 
     car_features = extract_features(cars, color_space=color_space,
                                     spatial_size=spatial_size,

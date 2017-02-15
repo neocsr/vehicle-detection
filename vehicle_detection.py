@@ -1,22 +1,12 @@
 import numpy as np
 import cv2
 import glob
-import time
-import math
-import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
-from scipy.ndimage.measurements import label
-from skimage.feature import hog
-from sklearn.svm import LinearSVC
-from sklearn.externals import joblib
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 from moviepy.editor import VideoFileClip
-from vehicle_features import extract_features
-from vehicle_search import add_heat, apply_threshold
-from vehicle_search import draw_boxes, draw_labeled_bboxes
-from vehicle_search import search_windows, slide_window
+from plotting_helpers import plot_images
+from vehicle_search import generate_search_windows
 from vehicle_model import build_model
+from vehicle_processing import process_image
+import matplotlib.pyplot as plt
 
 # Load sample images
 sample_files = glob.glob('test_images/*.jpg')
@@ -29,6 +19,11 @@ for file in sample_files:
 
 img = np.copy(sample_images[0])
 gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
+# plt.imshow(img)
+# plt.grid('on')
+# plt.savefig('img.jpg')
+# plt.show()
 
 # TODO: Tweak these parameters and see how the results change.
 color_space = 'LUV'           # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
@@ -53,63 +48,58 @@ svc, X_scaler = build_model(color_space=color_space,
                             hist_feat=hist_feat,
                             hog_feat=hog_feat)
 
-image = np.copy(img)
-draw_image = np.copy(image)
+windows = generate_search_windows(img)
+output_imgs = []
 
-# Uncomment the following line if you extracted training
-# data from .png images (scaled 0 to 1 by mpimg) and the
-# image you are searching is a .jpg (scaled 0 to 255)
-# image = image.astype(np.float32)/255
-
-y_start_stop = [int(img.shape[0]*1/3), None]   # Min and max in y to search
-
-windows = slide_window(image,
-                       x_start_stop=[None, None],
-                       y_start_stop=y_start_stop,
-                       xy_window=(96, 96),
-                       xy_overlap=(0.5, 0.5))
-
-# Check the prediction time for searching each image
-t = time.time()
-
-hot_windows = search_windows(image, windows=windows, clf=svc, scaler=X_scaler,
-                             color_space=color_space,
-                             spatial_size=spatial_size,
-                             hist_bins=hist_bins,
-                             orientations=orientations,
-                             pix_per_cell=pix_per_cell,
-                             cell_per_block=cell_per_block,
-                             hog_channel=hog_channel,
-                             spatial_feat=spatial_feat,
-                             hist_feat=hist_feat,
-                             hog_feat=hog_feat)
-t2 = time.time()
-
-print(round(t2-t, 2), 'Seconds to search windows...')
+for sample in sample_images:
+    win_img, heat_img, label_img = process_image(sample,
+                                                 windows=windows,
+                                                 clf=svc,
+                                                 scaler=X_scaler,
+                                                 color_space=color_space,
+                                                 spatial_size=spatial_size,
+                                                 hist_bins=hist_bins,
+                                                 orientations=orientations,
+                                                 pix_per_cell=pix_per_cell,
+                                                 cell_per_block=cell_per_block,
+                                                 hog_channel=hog_channel,
+                                                 spatial_feat=spatial_feat,
+                                                 hist_feat=hist_feat,
+                                                 hog_feat=hog_feat)
+    output_imgs.append(win_img)
+    output_imgs.append(heat_img)
+    output_imgs.append(label_img)
 
 
-window_img = draw_boxes(draw_image, hot_windows,
-                        color=(0, 0, 255), thickness=6)
+# plot_images(output_imgs, cols=3, figsize=(10, 24), cmap='hot')
 
-plt.figure(figsize=(10, 6))
-plt.imshow(window_img)
-plt.show()
 
-heatmap = np.zeros_like(img[:, :, 0]).astype(np.float)
-add_heat(heatmap=heatmap, bbox_list=hot_windows)
-labels = label(heatmap)
-heatmap = apply_threshold(heatmap, 0)
-labels = label(heatmap)
+def process_frame(image):
+    try:
+        _, _, label_img = process_image(image,
+                                        windows=windows,
+                                        clf=svc,
+                                        scaler=X_scaler,
+                                        color_space=color_space,
+                                        spatial_size=spatial_size,
+                                        hist_bins=hist_bins,
+                                        orientations=orientations,
+                                        pix_per_cell=pix_per_cell,
+                                        cell_per_block=cell_per_block,
+                                        hog_channel=hog_channel,
+                                        spatial_feat=spatial_feat,
+                                        hist_feat=hist_feat,
+                                        hog_feat=hog_feat)
+        frame = label_img
+    except Exception as e:
+        frame = image
+        print(e)
+    finally:
+        return frame
 
-print(labels[1], 'cars found')
-
-plt.figure(figsize=(10, 6))
-plt.imshow(labels[0], cmap='hot')
-plt.show()
-
-draw_img = draw_labeled_bboxes(np.copy(img), labels)
-
-plt.figure(figsize=(10, 6))
-plt.imshow(draw_img)
-plt.axis('off')
-plt.show()
+video_output = 'project_video_output.mp4'
+clip = VideoFileClip('project_video.mp4')
+# video_output = 'test_video_output.mp4'
+# clip = VideoFileClip('test_video.mp4')
+out_clip = clip.fl_image(process_frame)
+out_clip.write_videofile(video_output, audio=False)
