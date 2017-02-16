@@ -4,7 +4,9 @@ from scipy.ndimage.measurements import label
 from vehicle_search import add_heat, apply_threshold
 from vehicle_search import draw_boxes, draw_labeled_bboxes
 from vehicle_search import search_windows
+from vehicle_tracker import Tracker
 
+tracker = Tracker()
 
 def process_image(img, windows, clf, scaler,
                   color_space='RGB', spatial_size=(16, 16),
@@ -35,11 +37,15 @@ def process_image(img, windows, clf, scaler,
 
     # print(round(t2-t, 2), 'seconds to search windows...')
 
-    window_img = draw_boxes(draw_image, hot_windows,
+    tracker.add_hot_windows(hot_windows)
+
+    last_hot_windows = tracker.get_last_hot_windows()[0]
+
+    window_img = draw_boxes(draw_image, last_hot_windows,
                             color=(255, 80, 0), thickness=6)
 
     heatmap_img = np.zeros_like(img[:, :, 0]).astype(np.float)
-    add_heat(heatmap=heatmap_img, bbox_list=hot_windows)
+    add_heat(heatmap=heatmap_img, bbox_list=last_hot_windows)
 
     labels = label(heatmap_img)
     heatmap_img = apply_threshold(heatmap_img, 2)

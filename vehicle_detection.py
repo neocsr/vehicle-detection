@@ -49,30 +49,29 @@ svc, X_scaler = build_model(color_space=color_space,
                             hog_feat=hog_feat)
 
 windows = generate_search_windows(img)
-output_imgs = []
+# output_imgs = []
 
-for sample in sample_images:
-    win_img, heat_img, label_img = process_image(sample,
-                                                 windows=windows,
-                                                 clf=svc,
-                                                 scaler=X_scaler,
-                                                 color_space=color_space,
-                                                 spatial_size=spatial_size,
-                                                 hist_bins=hist_bins,
-                                                 orientations=orientations,
-                                                 pix_per_cell=pix_per_cell,
-                                                 cell_per_block=cell_per_block,
-                                                 hog_channel=hog_channel,
-                                                 spatial_feat=spatial_feat,
-                                                 hist_feat=hist_feat,
-                                                 hog_feat=hog_feat)
-    output_imgs.append(win_img)
-    output_imgs.append(heat_img)
-    output_imgs.append(label_img)
+# for sample in sample_images:
+#     win_img, heat_img, label_img = process_image(sample,
+#                                                  windows=windows,
+#                                                  clf=svc,
+#                                                  scaler=X_scaler,
+#                                                  color_space=color_space,
+#                                                  spatial_size=spatial_size,
+#                                                  hist_bins=hist_bins,
+#                                                  orientations=orientations,
+#                                                  pix_per_cell=pix_per_cell,
+#                                                  cell_per_block=cell_per_block,
+#                                                  hog_channel=hog_channel,
+#                                                  spatial_feat=spatial_feat,
+#                                                  hist_feat=hist_feat,
+#                                                  hog_feat=hog_feat)
+#     output_imgs.append(win_img)
+#     output_imgs.append(heat_img)
+#     output_imgs.append(label_img)
 
 
 # plot_images(output_imgs, cols=3, figsize=(10, 24), cmap='hot')
-
 
 def process_frame(image):
     try:
@@ -97,9 +96,13 @@ def process_frame(image):
     finally:
         return frame
 
+
 video_output = 'project_video_output.mp4'
 clip = VideoFileClip('project_video.mp4')
-# video_output = 'test_video_output.mp4'
-# clip = VideoFileClip('test_video.mp4')
 out_clip = clip.fl_image(process_frame)
 out_clip.write_videofile(video_output, audio=False)
+
+# video_output = 'test_video_output.mp4'
+# clip = VideoFileClip('test_video.mp4')
+# out_clip = clip.fl_image(process_frame)
+# out_clip.write_videofile(video_output, audio=False)

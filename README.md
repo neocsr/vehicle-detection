@@ -137,16 +137,28 @@ These are how the windows look like in a frame:
 ![png](docs/output_19_0.png)
 
 
-# Pipeline
+## Reliability of the Classifier
 
-Running the pipeline in the sample set:
+After several empirical trials using different values for the parameters of HOG features I could achieve a good accuracy using all channels in `LUV` or `YCrCb`. But even though the accuracy was high, it required a good amount of overlap in the windows to correctly detect a vehicle.
+
+To improve this I concatenated the other features for `Binned Colors` and `Histogram of Colors` to the initial `HOG Features` and normalized their values since those features have different maximum and minimum.
+
+To test different versions of the model with different parameters, I cached the models to avoid recomputing it whenever I tried the same values. The code for that part can be found in `vehicle_model.py` in the method `build_model` lines #24-#25.
+
+To reduce the number of false positives I used a threshold of the heatmap of detected overlapped boxes, which basically eliminates the isolated windows that were detected (false positive) by our classifier. In an updated version of the code I added also a `Tracker` class in the file `vehicle_tracker.py` that uses the last 10 frames to accumulate the detected windows and generates smoother bounding boxes, since the repetition of false positive across multiple frames is less probable.
+
+Doing that allowed a more reliable detection of the car. An example of the final pipeline is shown below. We can appreciate the in the images 2 and 6 a false positive was removed after the heatmap thresholding.
+
+### Pipeline
+
+Running the pipeline in the sample set, where the first column are the outputs from the classifier over the sliding windows, the second column is a heatmap over the overlapping windows and the last column shows the remaining windows after removing the windows below a threshold. Line #51 in `vehicle_processing.py`.
 
 ![png](docs/output_22_0.png)
 
 
 # Video Implementation
 
-Finally here is a link to the final video [project_video_output.mp4](project_video_output.mp4).
+Finally here is a link to the final video [project_video_output.mp4](project_video_output.mp4) which was updated using an accumulation of detected windows over the last 10 frames.
 
 Following the advise from the lectures, I implemented a heatmap of the overlapping windows and then apply a threshold to select the heatmaps that most likely indicate a positive car detection.
 
