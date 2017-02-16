@@ -174,3 +174,4 @@ My pipeline does perform well identifying cars that are close to the camera, but
 
 Another problem are the false positives, even though most of the time the cars are identified properly, my pipeline still have some false positives. An improvement would be to try to average multiple frames and remove the windows that do not appear in consecutive frames.
 
+Other factors like weather and lightning conditions will affect the performance of the classifier since we didn't consider them in the training data. If we can get a better training set that includes variations of lightning and weather we could improve that.
